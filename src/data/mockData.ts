@@ -150,6 +150,52 @@ export function getPlayerCategoryStats(playerName: string): CategoryStats[] {
   return stats;
 }
 
+export interface PlayerPerformanceInsight {
+  timeframe: string;
+  totalGained: number;
+  topCategory: { name: string; gained: number } | null;
+  categories: { name: string; gained: number }[];
+}
+
+export function getPlayerPerformanceInsights(playerName: string): PlayerPerformanceInsight[] {
+  if (!LATEST_DATE) return [];
+
+  const timeframes = [
+    { label: "1 Day", days: 1 },
+    { label: "1 Week", days: 7 },
+    { label: "Total", days: -1 }
+  ];
+
+  const categories = getCategories();
+  
+  return timeframes.map(tf => {
+    const targetDate = tf.days > 0 ? subtractDays(LATEST_DATE, tf.days) : null;
+    
+    let totalGained = 0;
+    const catGains: { name: string; gained: number }[] = [];
+
+    for (const cat of categories) {
+      const currentScore = guildData[cat]?.[LATEST_DATE]?.[playerName] || 0;
+      const pastScore = targetDate ? (guildData[cat]?.[targetDate]?.[playerName] || 0) : 0;
+      const gained = currentScore - pastScore;
+      
+      if (gained > 0) {
+        totalGained += gained;
+        catGains.push({ name: shortCategoryNames[cat] || cat, gained });
+      }
+    }
+
+    catGains.sort((a, b) => b.gained - a.gained);
+
+    return {
+      timeframe: tf.label,
+      totalGained,
+      topCategory: catGains.length > 0 ? catGains[0] : null,
+      categories: catGains
+    };
+  });
+}
+
 export function getPlayerHistory(playerName: string): { date: string; score: number }[] {
   const history: { date: string; score: number }[] = [];
   

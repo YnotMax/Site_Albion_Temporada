@@ -39,7 +39,7 @@ export default function App() {
         <PlayerProfile playerName={selectedPlayer} onBack={handleBackToRankings} onPlayerSelect={handlePlayerSelect} />
       ) : (
         <>
-          {currentTab === "dashboard" && <Dashboard onNavigate={handleTabChange} />}
+          {currentTab === "dashboard" && <Dashboard onNavigate={handleTabChange} onPlayerSelect={handlePlayerSelect} />}
           {currentTab === "rankings" && <Rankings onPlayerSelect={handlePlayerSelect} />}
           {currentTab === "strategy" && <Strategy />}
           {currentTab === "profile" && (

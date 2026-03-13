@@ -21,6 +21,7 @@ import {
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
+  onPlayerSelect: (playerName: string) => void;
 }
 
 const COLORS = [
@@ -28,7 +29,7 @@ const COLORS = [
   '#106D1E', '#0061A4', '#914D00', '#6B5E40', '#4A662C', '#006A6A'
 ];
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard({ onNavigate, onPlayerSelect }: DashboardProps) {
   const guildHistory = getGuildHistory();
   const focusDistribution = getGuildFocusDistribution();
   const growth = getGuildGrowth();
@@ -250,20 +251,24 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <div className="space-y-4">
             {risingStars.map((p, i) => (
-              <div key={p.name} className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/5">
+              <button 
+                key={p.name} 
+                onClick={() => onPlayerSelect(p.name)}
+                className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:bg-surface-container-high transition-all group"
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-black text-sm">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-black text-sm group-hover:bg-secondary group-hover:text-on-secondary transition-colors">
                     {i + 1}
                   </div>
-                  <div>
+                  <div className="text-left">
                     <h4 className="font-bold text-on-surface">{p.name}</h4>
                     <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">+{p.diff?.toLocaleString()} pts</span>
                   </div>
                 </div>
-                <div className="p-2 bg-surface-container-high rounded-lg">
-                  <ArrowRight className="w-4 h-4 text-on-surface-variant" />
+                <div className="p-2 bg-surface-container-high rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors">
+                  <ArrowRight className="w-4 h-4" />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -276,10 +281,14 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </div>
           <div className="space-y-3">
             {categoryLeaders.slice(0, 5).map((leader) => (
-              <div key={leader.id} className="flex items-center justify-between p-3 hover:bg-surface-container-low rounded-lg transition-colors group cursor-help relative">
+              <button 
+                key={leader.id} 
+                onClick={() => onPlayerSelect(leader.player.name)}
+                className="w-full flex items-center justify-between p-3 hover:bg-surface-container-low rounded-lg transition-colors group cursor-help relative"
+              >
                 <div className="flex items-center gap-3">
                   <div className={`w-1 h-6 rounded-full ${leader.color}`}></div>
-                  <div>
+                  <div className="text-left">
                     <h4 className="text-sm font-bold text-on-surface">{leader.player.name}</h4>
                     <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">{leader.label}</span>
                   </div>
@@ -294,7 +303,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <p className="font-bold mb-1 text-primary">{leader.label}</p>
                   <p className="leading-relaxed">{leader.explanation}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
           <button

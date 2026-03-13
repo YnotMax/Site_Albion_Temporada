@@ -1,5 +1,5 @@
-import { TrendingUp, Trophy, Swords, ArrowLeft, Search, Clock, Activity, Target } from "lucide-react";
-import { getPlayerCategoryStats, getAllPlayers, getPlayerHistory } from "../data/mockData";
+import { TrendingUp, Trophy, Swords, ArrowLeft, Search, Clock, Activity, Target, Zap } from "lucide-react";
+import { getPlayerCategoryStats, getAllPlayers, getPlayerHistory, getPlayerPerformanceInsights } from "../data/mockData";
 import { cn } from "../utils/cn";
 import { useState } from "react";
 import {
@@ -29,13 +29,13 @@ export function PlayerProfile({ playerName, onBack, onPlayerSelect }: PlayerProf
   
   const categoryStats = getPlayerCategoryStats(playerName);
   const performanceHistory = getPlayerHistory(playerName);
+  const insights = getPlayerPerformanceInsights(playerName);
 
   const radarData = categoryStats.map(stat => ({
     subject: stat.shortName,
     fullCategory: stat.category,
     A: stat.score,
-    fullMark: stat.maxScore,
-    percentage: stat.maxScore > 0 ? (stat.score / stat.maxScore) * 100 : 0
+    fullMark: stat.maxScore
   }));
 
   const allPlayers = getAllPlayers();
@@ -201,6 +201,48 @@ export function PlayerProfile({ playerName, onBack, onPlayerSelect }: PlayerProf
         </div>
       </section>
 
+      {/* Performance Insights */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {insights.map((insight) => (
+          <div key={insight.timeframe} className="bg-surface-container-lowest p-6 rounded-xl bento-shadow border-t-4 border-secondary flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                {insight.timeframe === "1 Day" ? "Last 24 Hours" : insight.timeframe === "1 Week" ? "Last 7 Days" : "All Time"}
+              </h3>
+              <Zap className="w-4 h-4 text-secondary" />
+            </div>
+            
+            <div className="flex items-end gap-2 mb-6">
+              <span className="text-4xl font-black text-on-surface">
+                {insight.totalGained > 1000000 ? `${(insight.totalGained / 1000000).toFixed(2)}M` : insight.totalGained.toLocaleString()}
+              </span>
+              <span className="text-sm font-bold text-on-surface-variant mb-1">pts</span>
+            </div>
+            
+            <div className="flex-1">
+              {insight.categories.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/10 pb-2">Top Categories</p>
+                  {insight.categories.slice(0, 3).map((cat, idx) => (
+                    <div key={cat.name} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 text-center font-black text-on-surface-variant/40 text-xs">{idx + 1}</span>
+                        <span className="font-bold text-on-surface">{cat.name}</span>
+                      </div>
+                      <span className="font-black text-secondary">
+                        +{cat.gained > 1000 ? `${(cat.gained / 1000).toFixed(1)}k` : cat.gained}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-on-surface-variant italic opacity-50 flex items-center justify-center h-full">No activity recorded.</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </section>
+
       {/* Main Content Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Skill Radar Chart */}
@@ -217,9 +259,9 @@ export function PlayerProfile({ playerName, onBack, onPlayerSelect }: PlayerProf
                   dataKey="subject"
                   tick={{ fill: "#434655", fontSize: 11, fontWeight: "bold" }}
                 />
-                <PolarRadiusAxis angle={30} domain={[5, 100]} tick={false} axisLine={false} />
+                <PolarRadiusAxis angle={30} domain={[0, "dataMax"]} tick={false} axisLine={false} />
                 <Tooltip 
-                  formatter={(value: number, name: string, props: any) => [props.payload.A.toLocaleString(), "Score"]}
+                  formatter={(value: number) => [value.toLocaleString(), "Score"]}
                   labelFormatter={(label) => {
                     const dataPoint = radarData.find(d => d.subject === label);
                     return dataPoint ? dataPoint.fullCategory : label;
@@ -228,7 +270,7 @@ export function PlayerProfile({ playerName, onBack, onPlayerSelect }: PlayerProf
                 />
                 <Radar
                   name={playerName}
-                  dataKey="percentage"
+                  dataKey="A"
                   stroke="#004ac6"
                   strokeWidth={3}
                   fill="#2563eb"
